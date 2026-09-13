@@ -1,0 +1,204 @@
+openapi: 3.0.3
+info:
+  title: Goldwise — Precious Metal Order Ledger
+  description: >-
+    Records precious-metal BUY/SELL transactions per user and computes each
+    user's current position. No authentication, payments, or live pricing.
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8000
+paths:
+  /users/{userId}/transactions:
+    post:
+      summary: Create a transaction
+      operationId: createTransaction
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema:
+            type: string
+          description: >-
+            Optional client-supplied key. Replaying a POST with the same key
+            for the same user returns the original transaction instead of
+            creating a duplicate.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionRequest'
+            examples:
+              buy:
+                value: { metal: GOLD, side: BUY, quantity: 2.5, price: 3200, currency: GBP }
+      responses:
+        '201':
+          description: Transaction created (or, on an idempotency-key replay, the original transaction).
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Validation failed or the request body could not be parsed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: The SELL would drive the user's position negative.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: Get a user's transaction history
+      operationId: listTransactions
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - in: query
+          name: metal
+          schema:
+            $ref: '#/components/schemas/Metal'
+          required: false
+        - in: query
+          name: side
+          schema:
+            $ref: '#/components/schemas/Side'
+          required: false
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Paginated transaction history, newest first.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+  /users/{userId}/positions:
+    get:
+      summary: Get a user's current position per metal
+      operationId: listPositions
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: One entry per metal the user has ever transacted in.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Position'
+              examples:
+                default:
+                  value:
+                    - { metal: GOLD, quantity: "4.25000000" }
+                    - { metal: SILVER, quantity: "120.00000000" }
+components:
+  parameters:
+    UserId:
+      in: path
+      name: userId
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+  schemas:
+    Metal:
+      type: string
+      enum: [GOLD, SILVER]
+    Side:
+      type: string
+      enum: [BUY, SELL]
+    Currency:
+      type: string
+      enum: [GBP, USD, EUR]
+    CreateTransactionRequest:
+      type: object
+      required: [metal, side, quantity, price, currency]
+      properties:
+        metal:
+          $ref: '#/components/schemas/Metal'
+        side:
+          $ref: '#/components/schemas/Side'
+        quantity:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+        price:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+        currency:
+          $ref: '#/components/schemas/Currency'
+    Transaction:
+      type: object
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        metal:
+          $ref: '#/components/schemas/Metal'
+        side:
+          $ref: '#/components/schemas/Side'
+        quantity:
+          type: string
+          description: Fixed 8-decimal-place string to avoid floating-point rounding.
+        price:
+          type: string
+        currency:
+          $ref: '#/components/schemas/Currency'
+        timestamp:
+          type: string
+          format: date-time
+    Position:
+      type: object
+      properties:
+        metal:
+          $ref: '#/components/schemas/Metal'
+        quantity:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: validation_failed
+            message:
+              type: string
+            violations:
+              type: array
+              items:
+                type: object
+                properties:
+                  field: { type: string }
+                  message: { type: string }

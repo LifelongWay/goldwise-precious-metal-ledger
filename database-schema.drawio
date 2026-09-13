@@ -1,0 +1,55 @@
+<mxfile host="Electron">
+  <diagram name="Database Model" id="db-model-1">
+    <mxGraphModel dx="899" dy="643" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="user" parent="1" style="swimlane;html=1;fontStyle=1;align=center;startSize=30;dashed=1;rounded=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#666666;" value="User (conceptual)" vertex="1">
+          <mxGeometry height="60" width="240" x="40" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="user-row1" parent="user" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=8;fontSize=11;fontColor=#666666;whiteSpace=wrap;strokeColor=none;" value="userId — no physical table; auth is out of scope, so this is just an integer identifier" vertex="1">
+          <mxGeometry height="30" width="240" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="txn" parent="1" style="swimlane;html=1;fontStyle=1;align=center;startSize=30;rounded=0;fillColor=#60a917;strokeColor=#2D7600;fontColor=#ffffff;" value="transactions" vertex="1">
+          <mxGeometry height="264" width="320" x="400" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" parent="txn" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=8;fontSize=12;fontStyle=1;" value="PK   id : BIGINT (identity)" vertex="1">
+          <mxGeometry height="26" width="320" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r2" parent="txn" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=8;fontSize=12;" value="user_id : BIGINT  (app-level owner, no FK)" vertex="1">
+          <mxGeometry height="26" width="320" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="r3" parent="txn" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=8;fontSize=12;" value="metal : VARCHAR(16)  [&#39;GOLD&#39;,&#39;SILVER&#39;]" vertex="1">
+          <mxGeometry height="26" width="320" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="r4" parent="txn" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=8;fontSize=12;" value="side : VARCHAR(4)  [&#39;BUY&#39;,&#39;SELL&#39;]" vertex="1">
+          <mxGeometry height="26" width="320" y="108" as="geometry" />
+        </mxCell>
+        <mxCell id="r5" parent="txn" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=8;fontSize=12;" value="quantity : NUMERIC(18,8)" vertex="1">
+          <mxGeometry height="26" width="320" y="134" as="geometry" />
+        </mxCell>
+        <mxCell id="r6" parent="txn" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=8;fontSize=12;" value="price : NUMERIC(18,8)" vertex="1">
+          <mxGeometry height="26" width="320" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="r7" parent="txn" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=8;fontSize=12;" value="currency : VARCHAR(3)  [&#39;GBP&#39;,&#39;USD&#39;,&#39;EUR&#39;]" vertex="1">
+          <mxGeometry height="26" width="320" y="186" as="geometry" />
+        </mxCell>
+        <mxCell id="r8" parent="txn" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=8;fontSize=12;" value="idempotency_key : VARCHAR(255) NULL" vertex="1">
+          <mxGeometry height="26" width="320" y="212" as="geometry" />
+        </mxCell>
+        <mxCell id="r9" parent="txn" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=8;fontSize=12;" value="created_at : TIMESTAMP" vertex="1">
+          <mxGeometry height="26" width="320" y="238" as="geometry" />
+        </mxCell>
+        <mxCell id="idx-note" parent="1" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;fontSize=11;whiteSpace=wrap;dashed=1;fillColor=#008a00;fontColor=#ffffff;strokeColor=#005700;" value="Indexes &amp; constraints:&#xa;• INDEX (user_id, metal) — fast position sums&#xa;• INDEX (user_id, created_at) — fast history pagination&#xa;• UNIQUE (user_id, idempotency_key) — idempotent retries" vertex="1">
+          <mxGeometry height="90" width="320" x="400" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="rel1" edge="1" parent="1" source="user" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#666666;fontColor=#666666;" target="txn" value="records">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="title" parent="1" style="text;html=1;align=left;fontSize=16;fontStyle=1;" value="Goldwise — Precious Metal Order Ledger: Database Model" vertex="1">
+          <mxGeometry height="30" width="560" x="40" y="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
